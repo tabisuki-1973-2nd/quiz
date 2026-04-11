@@ -169,6 +169,13 @@
   }
   .btn-next:disabled { opacity: 0.4; }
   .btn-next:active:not(:disabled) { transform: scale(0.97); }
+  .btn-quit {
+    padding: 18px 16px;
+    background: transparent;
+    color: #e74c3c; font-size: 15px; font-weight: 700;
+    border: 1px solid rgba(231,76,60,0.4); border-radius: var(--radius);
+    cursor: pointer;
+  }
   .btn-skip {
     padding: 18px 22px;
     background: transparent;
@@ -293,8 +300,21 @@
     <div class="exp-text" id="expText"></div>
   </div>
   <div class="btn-area">
+    <button class="btn-quit" onclick="confirmQuit()">中断</button>
     <button class="btn-skip" onclick="skipQ()">スキップ</button>
     <button class="btn-next" id="btnNext" onclick="nextQ()" disabled>次の問題 →</button>
+  </div>
+
+  <!-- 中断確認ダイアログ -->
+  <div id="quitOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center;">
+    <div style="background:var(--navy2); border:1px solid var(--accent); border-radius:14px; padding:28px 24px; margin:20px; text-align:center;">
+      <div style="font-size:18px; font-weight:700; margin-bottom:10px;">試験を中断しますか？</div>
+      <div style="font-size:14px; color:var(--gray); margin-bottom:24px;">途中までの結果は表示されます。</div>
+      <div style="display:flex; gap:12px;">
+        <button onclick="cancelQuit()" style="flex:1; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white; font-size:15px; cursor:pointer;">続ける</button>
+        <button onclick="doQuit()" style="flex:1; padding:14px; border-radius:14px; border:none; background:#e74c3c; color:white; font-size:15px; font-weight:700; cursor:pointer;">中断する</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1232,6 +1252,21 @@ function restartSame() {
   document.getElementById('progressWrap').style.display='block';
   document.getElementById('statsArea').style.display='flex';
   renderQuestion();
+}
+
+function confirmQuit() {
+  const overlay = document.getElementById('quitOverlay');
+  overlay.style.display = 'flex';
+}
+
+function cancelQuit() {
+  const overlay = document.getElementById('quitOverlay');
+  overlay.style.display = 'none';
+}
+
+function doQuit() {
+  document.getElementById('quitOverlay').style.display = 'none';
+  showResult();
 }
 
 function goHome() {
