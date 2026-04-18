@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>自衛隊試験 模擬問題</title>
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy2: #112240;
+    --blue: #1a3a6b;
+    --accent: #c9a227;
+    --accent2: #e8c547;
+    --light: #e8f0fe;
+    --white: #ffffff;
+    --gray: #8899aa;
+    --correct: #2ecc71;
+    --wrong: #e74c3c;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy2) 0%, var(--blue) 100%);
+    padding: 16px 20px 12px;
+    border-bottom: 2px solid var(--accent);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: 1px; color: var(--accent); }
+  .badge {
+    background: var(--accent); color: var(--navy);
+    font-size: 13px; font-weight: 700;
+    padding: 4px 11px; border-radius: 20px;
+  }
+  .progress-bar-wrap { margin-top: 10px; background: rgba(255,255,255,0.1); border-radius: 99px; height: 6px; }
+  .progress-bar { height: 6px; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .4s; }
+  .stats { display: flex; gap: 16px; margin-top: 8px; }
+  .stat { font-size: 14px; color: var(--gray); }
+  .stat span { color: var(--white); font-weight: 600; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; padding: 20px 16px 120px; }
+  .screen.active { display: block; }
+
+  /* ── HOME ── */
+  .home-hero {
+    text-align: center;
+    padding: 40px 20px 30px;
+  }
+  .emblem { font-size: 64px; margin-bottom: 12px; }
+  .home-hero h2 { font-size: 26px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+  .home-hero p { font-size: 16px; color: var(--gray); line-height: 1.7; }
+  .categories {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 24px 0;
+  }
+  .cat-btn {
+    background: var(--navy2); border: 1px solid rgba(201,162,39,0.3);
+    border-radius: var(--radius); padding: 14px 10px;
+    text-align: center; cursor: pointer;
+    transition: all .2s; color: var(--white);
+  }
+  .cat-btn:active { transform: scale(0.96); background: var(--blue); }
+  .cat-btn.selected { border-color: var(--accent); background: rgba(201,162,39,0.15); }
+  .cat-icon { font-size: 26px; margin-bottom: 5px; }
+  .cat-name { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .cat-count { font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .start-btn {
+    width: 100%; padding: 18px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: var(--navy); font-size: 16px; font-weight: 800;
+    border: none; border-radius: var(--radius); cursor: pointer;
+    letter-spacing: 2px;
+    box-shadow: 0 6px 24px rgba(201,162,39,0.4);
+    transition: all .2s;
+  }
+  .start-btn:active { transform: scale(0.97); }
+  .mode-select { display: flex; gap: 8px; margin: 16px 0; }
+  .mode-btn {
+    flex: 1; padding: 12px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: var(--navy2); color: var(--gray);
+    font-size: 14px; cursor: pointer; transition: all .2s;
+  }
+  .mode-btn.selected { border-color: var(--accent); color: var(--accent); background: rgba(201,162,39,0.1); }
+
+  /* ── QUESTION ── */
+  .q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .q-num { font-size: 15px; color: var(--gray); }
+  .q-cat-tag {
+    font-size: 13px; padding: 5px 12px;
+    background: rgba(201,162,39,0.15); color: var(--accent);
+    border-radius: 20px; border: 1px solid rgba(201,162,39,0.3);
+  }
+  .q-card {
+    background: var(--navy2);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius); padding: 20px;
+    margin-bottom: 16px;
+  }
+  .q-type { font-size: 13px; color: var(--accent); margin-bottom: 10px; letter-spacing: 1px; font-weight: 600; }
+  .q-text { font-size: 17px; line-height: 2.0; font-weight: 500; }
+  .q-sub {
+    margin-top: 14px; padding: 14px;
+    background: rgba(255,255,255,0.04);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    font-size: 16px; line-height: 2.0; color: var(--light);
+  }
+  .choices { display: flex; flex-direction: column; gap: 12px; }
+  .choice {
+    background: var(--navy2); border: 1.5px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius); padding: 16px 18px;
+    display: flex; align-items: flex-start; gap: 14px;
+    cursor: pointer; transition: all .2s;
+  }
+  .choice:active { transform: scale(0.98); }
+  .choice.selected { border-color: var(--accent); background: rgba(201,162,39,0.1); }
+  .choice.correct { border-color: var(--correct); background: rgba(46,204,113,0.12); }
+  .choice.wrong { border-color: var(--wrong); background: rgba(231,76,60,0.12); }
+  .choice-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; flex-shrink: 0;
+    color: var(--gray);
+  }
+  .choice.selected .choice-num { background: var(--accent); color: var(--navy); }
+  .choice.correct .choice-num { background: var(--correct); color: white; }
+  .choice.wrong .choice-num { background: var(--wrong); color: white; }
+  .choice-text { font-size: 16px; line-height: 1.9; padding-top: 4px; }
+
+  /* ── EXPLANATION ── */
+  .explanation {
+    display: none;
+    margin-top: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius); padding: 14px;
+  }
+  .explanation.show { display: block; }
+  .exp-label { font-size: 13px; color: var(--accent); font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+  .exp-text { font-size: 15px; line-height: 1.9; color: var(--light); }
+
+  /* ── BOTTOM BUTTONS ── */
+  .btn-area {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 12px 16px 28px;
+    background: linear-gradient(to top, var(--navy) 80%, transparent);
+    display: flex; gap: 10px;
+  }
+  .btn-next {
+    flex: 1; padding: 18px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: var(--navy); font-size: 17px; font-weight: 800;
+    border: none; border-radius: var(--radius); cursor: pointer;
+    letter-spacing: 1px; transition: all .2s;
+  }
+  .btn-next:disabled { opacity: 0.4; }
+  .btn-next:active:not(:disabled) { transform: scale(0.97); }
+  .btn-quit {
+    padding: 18px 16px;
+    background: transparent;
+    color: #e74c3c; font-size: 15px; font-weight: 700;
+    border: 1px solid rgba(231,76,60,0.4); border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .btn-skip {
+    padding: 18px 22px;
+    background: transparent;
+    color: var(--gray); font-size: 15px;
+    border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius);
+    cursor: pointer;
+  }
+
+  /* ── RESULT ── */
+  .result-circle {
+    width: 150px; height: 150px; border-radius: 50%;
+    border: 5px solid var(--accent);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 30px auto;
+    background: var(--navy2);
+    box-shadow: 0 0 40px rgba(201,162,39,0.3);
+  }
+  .result-score { font-size: 46px; font-weight: 900; color: var(--accent); }
+  .result-total { font-size: 15px; color: var(--gray); }
+  .result-msg { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .result-sub { text-align: center; font-size: 15px; color: var(--gray); margin-bottom: 24px; }
+  .result-cats { background: var(--navy2); border-radius: var(--radius); padding: 16px; margin-bottom: 20px; }
+  .result-cat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .result-cat-row:last-child { border-bottom: none; }
+  .result-cat-name { font-size: 14px; }
+  .result-cat-bar-wrap { flex: 1; margin: 0 12px; height: 5px; background: rgba(255,255,255,0.1); border-radius: 99px; }
+  .result-cat-bar { height: 5px; border-radius: 99px; background: var(--accent); }
+  .result-cat-pct { font-size: 13px; color: var(--gray); min-width: 36px; text-align: right; }
+  .restart-btn {
+    width: 100%; padding: 20px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: var(--navy); font-size: 17px; font-weight: 800;
+    border: none; border-radius: var(--radius); cursor: pointer;
+    margin-bottom: 12px;
+  }
+  .back-btn {
+    width: 100%; padding: 16px;
+    background: transparent; color: var(--gray);
+    font-size: 16px; border: 1px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius); cursor: pointer;
+  }
+
+  /* ── REVIEW ── */
+  .review-item {
+    background: var(--navy2); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 12px;
+    border-left: 4px solid;
+  }
+  .review-item.ok { border-color: var(--correct); }
+  .review-item.ng { border-color: var(--wrong); }
+  .review-qnum { font-size: 12px; color: var(--gray); margin-bottom: 6px; }
+  .review-qtext { font-size: 14px; line-height: 1.7; margin-bottom: 8px; }
+  .review-ans { font-size: 13px; }
+  .review-ans .your { color: var(--wrong); }
+  .review-ans .correct-ans { color: var(--correct); }
+    background: var(--navy2); border-radius: var(--radius);
+    padding: 14px; margin-bottom: 12px;
+    border-left: 4px solid;
+  }
+  .review-item.ok { border-color: var(--correct); }
+  .review-item.ng { border-color: var(--wrong); }
+  .review-qnum { font-size: 10px; color: var(--gray); margin-bottom: 4px; }
+  .review-qtext { font-size: 12px; line-height: 1.6; margin-bottom: 6px; }
+  .review-ans { font-size: 11px; }
+  .review-ans .your { color: var(--wrong); }
+  .review-ans .correct-ans { color: var(--correct); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <h1>🛡 自衛隊 模擬試験</h1>
+    <span class="badge" id="headerBadge">80問</span>
+  </div>
+  <div class="progress-bar-wrap" id="progressWrap" style="display:none">
+    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+  </div>
+  <div class="stats" id="statsArea" style="display:none">
+    <div class="stat">問題 <span id="statQ">0</span></div>
+    <div class="stat">正解 <span id="statC" style="color:var(--correct)">0</span></div>
+    <div class="stat">不正解 <span id="statW" style="color:var(--wrong)">0</span></div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen active" id="screenHome">
+  <div class="home-hero">
+    <div class="emblem">✈️</div>
+    <h2>航空自衛隊<br>模擬試験アプリ</h2>
+    <p>試験範囲から出題される<br>4択模擬問題で実力を確認しよう</p>
+  </div>
+
+  <div style="margin-bottom:12px; font-size:12px; color:var(--gray); font-weight:600; letter-spacing:1px;">出題モード</div>
+  <div class="mode-select">
+    <button class="mode-btn selected" id="modeAll" onclick="setMode('all')">全問題</button>
+    <button class="mode-btn" id="modeRand" onclick="setMode('random')">ランダム30問</button>
+    <button class="mode-btn" id="modeWeak" onclick="setMode('weak')">苦手問題</button>
+  </div>
+
+  <div style="margin: 16px 0 8px; font-size:12px; color:var(--gray); font-weight:600; letter-spacing:1px;">カテゴリ選択</div>
+  <div class="categories" id="catGrid"></div>
+
+  <button class="start-btn" onclick="startQuiz()">試験開始 ▶</button>
+</div>
+
+<!-- QUESTION -->
+<div class="screen" id="screenQ">
+  <div class="q-meta">
+    <span class="q-num" id="qNum">第1問</span>
+    <span class="q-cat-tag" id="qCatTag"></span>
+  </div>
+  <div class="q-card">
+    <div class="q-type" id="qType"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="q-sub" id="qSub" style="display:none"></div>
+  </div>
+  <div class="choices" id="choicesArea"></div>
+  <div class="explanation" id="explanation">
+    <div class="exp-label">解説</div>
+    <div class="exp-text" id="expText"></div>
+  </div>
+  <div class="btn-area">
+    <button class="btn-quit" onclick="confirmQuit()">中断</button>
+    <button class="btn-skip" onclick="skipQ()">スキップ</button>
+    <button class="btn-next" id="btnNext" onclick="nextQ()" disabled>次の問題 →</button>
+  </div>
+
+  <!-- 中断確認ダイアログ -->
+  <div id="quitOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center;">
+    <div style="background:var(--navy2); border:1px solid var(--accent); border-radius:14px; padding:28px 24px; margin:20px; text-align:center;">
+      <div style="font-size:18px; font-weight:700; margin-bottom:10px;">試験を中断しますか？</div>
+      <div style="font-size:14px; color:var(--gray); margin-bottom:24px;">途中までの結果は表示されます。</div>
+      <div style="display:flex; gap:12px;">
+        <button onclick="cancelQuit()" style="flex:1; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white; font-size:15px; cursor:pointer;">続ける</button>
+        <button onclick="doQuit()" style="flex:1; padding:14px; border-radius:14px; border:none; background:#e74c3c; color:white; font-size:15px; font-weight:700; cursor:pointer;">中断する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="screenResult">
+  <div class="result-circle">
+    <div class="result-score" id="resScore">0</div>
+    <div class="result-total" id="resTotal">/ 0問</div>
+  </div>
+  <div class="result-msg" id="resMsg"></div>
+  <div class="result-sub" id="resSub"></div>
+  <div class="result-cats" id="resCats"></div>
+  <button class="restart-btn" onclick="restartSame()">もう一度挑戦</button>
+  <button class="back-btn" onclick="goHome()">← ホームに戻る</button>
+  <div style="height:20px"></div>
+  <div style="font-size:12px; color:var(--gray); margin-bottom:10px; font-weight:600;">間違えた問題</div>
+  <div id="reviewArea"></div>
+</div>
+
+<script>
+// ===========================
+// QUESTION BANK
+// ===========================
+const CATS = [
+  { id:'law',     name:'自衛隊法',       icon:'⚖️',  desc:'防衛出動・治安出動等' },
+  { id:'rei',     name:'礼式・敬礼',     icon:'🎖️',  desc:'敬礼・旗・防衛記念章' },
+  { id:'himitsu', name:'特定秘密',       icon:'🔐',  desc:'特定秘密の保護' },
+  { id:'bunsho',  name:'行政文書',       icon:'📄',  desc:'文書管理・倫理規定' },
+  { id:'fuku',    name:'服装',           icon:'👔',  desc:'航空自衛官服装細則' },
+  { id:'kyoka',   name:'休暇制度',       icon:'🌿',  desc:'各種休暇・産前産後' },
+  { id:'comp',    name:'コンプライアンス',icon:'🧭', desc:'セクハラ・倫理・事故' },
+  { id:'taiiku',  name:'体育・行進・銃', icon:'🏃',  desc:'体育訓練・銃操作・行進' },
+  { id:'anzen',   name:'安全管理',       icon:'🚨',  desc:'安全色彩・安全標識' },
+  { id:'kyoiku',  name:'教育訓練',       icon:'📚',  desc:'訓練の区分・部隊訓練' },
+  { id:'kichi',   name:'基地服務',       icon:'🏢',  desc:'消防・災害・当直' },
+  { id:'keiki',   name:'経歴管理',       icon:'📋',  desc:'経歴管理・段階区分' },
+  { id:'joho',    name:'情報保証',       icon:'💻',  desc:'情報保証・脆弱性対応' },
+  { id:'ryakugo', name:'防衛略語',       icon:'🔤',  desc:'防衛関連略語' },
+];
+
+const ALL_Q = [
+
+// ====== 自衛隊法 ======
+{id:1,cat:'law',type:'正誤の組合せを選べ',
+ text:'防衛出動（自衛隊法第76条）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：内閣総理大臣は、武力攻撃事態等及び存立危機事態において、国会の承認を得なければならない。
+B：内閣総理大臣は、出動の必要がなくなったときは、直ちに自衛隊の撤収を命じなければならない。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に正しい。承認は武力攻撃事態等及び存立危機事態に関する法律第9条の定めによる。撤収命令は第76条第2項に規定。'},
+
+{id:2,cat:'law',type:'（　）に入る語句として、正しいものを選べ',
+ text:'治安出動（自衛隊法第78条）の国会付議について、（　）に入る数字として、正しいものを選べ。
+
+「内閣総理大臣は、出動を命じた日から（　）日以内に国会に付議して、その承認を求めなければならない。」',
+ choices:['10日','20日','30日','7日'],
+ answer:1,
+ exp:'第78条第2項の規定により20日以内。国会が閉会中または衆議院が解散中の場合は、その後最初に召集される国会において速やかに承認を求める。'},
+
+{id:3,cat:'law',type:'誤りを選べ',
+ text:'治安出動時の権限（自衛隊法第90条第1項）において、武器を使用できる場合として、誤りを選べ。',
+ choices:['職務上護護する人が暴行を受け、武器を使用するほか他にこれを排除する適当な手段がない場合',
+          '職務上護護する施設が侵害を受け、武器を使用するほか他にこれを排除する適当な手段がない場合',
+          '他に手段がある場合でも、効率的に任務を遂行するため必要と認めた場合',
+          '職務上護護する物件が暴行を受け、武器を使用するほか他にこれを排除する適当な手段がない場合'],
+ answer:2,
+ exp:'「他に手段がある場合でも」という記述が誤り。第90条は「他にこれを排除する適当な手段がない場合」という要件を定めており、他に手段がある場合は武器使用は認められない。'},
+
+{id:4,cat:'law',type:'正誤の組合せを選べ',
+ text:'防衛出動時の緊急通行（自衛隊法第92条の2）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：目的地に速やかに到着するためであれば、公共の用に供しない空地を通行することができる。
+B：通行のために損害を受けた者から補償の要求があるときは、政令で定めるところにより損失を補償するものとする。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:2,
+ exp:'Aは誤り。緊急通行は「通行に支障がある場所をう回するため」または「目的地に速やかに到着するため公共の用に供しない空地等」が要件。条文上、通行支障のう回と速達の両方が根拠となる。ただし「目的地に速やかに到着するため」の通行権は別号（第二号）の規定。Bは正しい（第92条の2後段）。'},
+
+{id:5,cat:'law',type:'正しいものを選べ',
+ text:'存立危機事態の定義において、（　）に入る語句として、正しいものを選べ。
+
+「我が国と密接な関係にある他国に対する武力攻撃が発生し、これにより我が国の（　）が脅かされ、国民の生命、自由及び幸福追求の権利が根底から覆される明白な危険がある事態をいう。」',
+ choices:['安全保障','存立','主権','領土'],
+ answer:1,
+ exp:'存立危機事態の定義として「存立が脅かされ」が正しい。「安全保障」「主権」「領土」はいずれも誤り。'},
+
+{id:6,cat:'law',type:'正誤の組合せを選べ',
+ text:'自衛隊法第78条（命令による治安出動）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：不承認の議決があったときは、内閣総理大臣は速やかに撤収を命じなければならない。
+B：衆議院が解散されている場合は、国会への付議は解散後最初に召集される国会において速やかに行う。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に第78条第2項・第3項の規定のとおり正しい。'},
+
+{id:7,cat:'law',type:'（　）に入る語句として、正しいものを選べ',
+ text:'予備自衛官の訓練招集について、（　）に入る数字として、正しいものを選べ。
+
+「訓練招集命令による訓練招集の期間は、1年を通じて（　）日をこえないものとする。」',
+ choices:['10日','15日','20日','30日'],
+ answer:2,
+ exp:'予備自衛官の訓練招集期間は1年を通じて20日をこえないものとする。'},
+
+{id:8,cat:'law',type:'誤りを選べ',
+ text:'自衛隊の部隊に関する記述として、誤りを選べ。',
+ choices:['航空教育集団は、航空教育集団司令部及び航空教育隊1その他防衛大臣の定める部隊をもって編成する。',
+          '航空支援集団は、航空支援集団司令部及び輸送航空隊3、航空救難団1、航空保安管制群1、航空気象群1その他防衛大臣の定める部隊をもって編成する。',
+          '航空総隊は、航空総隊司令部及び航空方面隊4、警戒航空団1、航空戦術教導団1その他防衛大臣の定める部隊をもって編成する。',
+          '航空教育集団は航空方面隊の指揮下に置かれる。'],
+ answer:3,
+ exp:'航空教育集団は独立した集団であり、航空方面隊の指揮下には置かれない。'},
+
+{id:9,cat:'law',type:'正誤の組合せを選べ',
+ text:'自衛隊法の品位を保つ義務について、次の（　）A・Bに入る語句の組合せとして、正しいものを選べ。
+
+「隊員は、常に品位を重んじ、いやしくも隊員としての（A）を傷つけ、又は自衛隊の（B）を損するような行為をしてはならない。」',
+ choices:['A：名誉　B：威信','A：信用　B：威信','A：信用　B：規律','A：尊厳　B：名誉'],
+ answer:1,
+ exp:'正しくはA：信用、B：威信。「信用を傷つけ」「威信を損する」行為を禁止している。'},
+
+{id:10,cat:'law',type:'正しいものを選べ',
+ text:'自衛隊法における「航空教育集団」の編成として、正しいものを選べ。',
+ choices:['航空教育集団司令部及び航空教育隊1その他防衛大臣の定める部隊をもって編成する。',
+          '航空教育集団司令部及び航空教育隊2、飛行教育団1をもって編成する。',
+          '航空教育集団司令部及び航空教育隊2、飛行教育団2、航空教育隊1その他防衛大臣の定める部隊をもって編成する。',
+          '航空教育集団は飛行教育団1のみで編成する。'],
+ answer:2,
+ exp:'航空教育集団の編成として、航空教育集団司令部及び航空教育隊2、飛行教育団2、航空教育隊1その他防衛大臣の定める部隊が正しい。'},
+
+// ====== 礼式・敬礼 ======
+{id:11,cat:'rei',type:'正誤の組合せを選べ',
+ text:'敬礼の種類について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：警衛隊の敬礼とは、警衛勤務についている警衛隊が行なう敬礼をいう。
+B：歩哨等の敬礼とは、歩哨又は警衛の勤務についている自衛官が行なう敬礼をいう。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に自衛隊の礼式に関する訓令第7条の規定のとおり正しい。'},
+
+{id:12,cat:'rei',type:'（　）に入る語句として、正しいものを選べ',
+ text:'旗の保管（自衛隊の旗に関する訓令第20条）について、（　）に入る語句として、正しいものを選べ。
+
+「旗は、使用しないときは、（　）に立て、又は保管箱に収納して、保管するものとする。」',
+ choices:['旗竿','三脚架','専用台','保管棚'],
+ answer:1,
+ exp:'第20条の規定のとおり、三脚架に立て、又は保管箱に収納して保管する。'},
+
+{id:13,cat:'rei',type:'正誤の組合せを選べ',
+ text:'旗の使用区分について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：祝日用の国旗は、荒天の日を除く国民の祝日及び自衛隊記念日に使用する。
+B：通常用の国旗は、荒天の日その他の日に掲揚する場合に使用する。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に第6条別表第1の規定のとおり正しい。祝日用は祝日・記念日（荒天除く）、通常用はその他の日。'},
+
+{id:14,cat:'rei',type:'誤りを選べ',
+ text:'旗の雑則（自衛隊の旗に関する訓令第18条）について、弔意の表示として、誤りを選べ。',
+ choices:['旗のかん頭を黒布で覆う',
+          'かん頭の下に幅10センチメートルの黒布を結び付ける',
+          '黒布の長さは旗の横の長さに等しい長さの2条とする',
+          '弔意の黒布は白布で代替することができる'],
+ answer:3,
+ exp:'白布で代替できるという規定はない。黒布で覆い、幅10センチメートルで旗の横の長さに等しい2条の黒布を結び付けるのが正しい規定。'},
+
+{id:15,cat:'rei',type:'正しいものを選べ',
+ text:'報告等を行う場合の敬礼について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：2人以上同時に報告等をする場合は、通常、個々に敬礼を行う。
+B：「集合終わり」等の簡単な報告は、敬礼中に行うことができる。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:2,
+ exp:'Aは誤り。2人以上同時の場合は先任者の合図により一斉に行う。Bは正しい。'},
+
+{id:16,cat:'rei',type:'（　）に入る語句として、正しいものを選べ',
+ text:'防衛記念章を3個着用する場合の表示について、（　）に入る語句として、正しいものを選べ。
+
+「3個　当該防衛記念章の中央に（　）の桜花を1個付けたもの」',
+ choices:['金色','銀色','赤色','白色'],
+ answer:1,
+ exp:'3個の場合は銀色の桜花を1個。2個：銀1個、3個：銀1個、4個：銀2個、5個：金2個の順。'},
+
+{id:17,cat:'rei',type:'正誤の組合せを選べ',
+ text:'防衛記念章の表示について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：4個着用する場合は当該防衛記念章の中央に銀色の桜花を2個付ける。
+B：5個以上着用する場合は当該防衛記念章の中央に金色の桜花を2個付ける。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に訓令第5条の規定のとおり正しい。4個は銀2個、5個以上は金2個。'},
+
+// ====== 特定秘密 ======
+{id:18,cat:'himitsu',type:'正誤の組合せを選べ',
+ text:'特定秘密の伝達（第25条）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：特定秘密を伝達するときは、あらかじめ特定秘密管理者の承認を得るものとする。
+B：伝達の相手方が特定秘密取扱職員であることを確認するものとする。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A（第25条第1項）・B（第25条第2項）共に正しい。'},
+
+{id:19,cat:'himitsu',type:'（　）に入る語句として、正しいものを選べ',
+ text:'特定秘密文書等の廃棄（第28条第5項）について、（　）に入る数字として、正しいものを選べ。
+
+「特定秘密文書等の廃棄は、当該特定秘密文書等が記録又は化体する特定秘密に係る特定秘密取扱職員が（　）名以上で行うものとする。」',
+ choices:['1','2','3','5'],
+ answer:1,
+ exp:'第28条第5項の規定により2名以上の特定秘密取扱職員が必要。'},
+
+{id:20,cat:'himitsu',type:'誤りを選べ',
+ text:'特定秘密文書等の廃棄方法として、誤りを選べ。',
+ choices:['焼却','粉砕','細断','保管庫への永久封印'],
+ answer:3,
+ exp:'廃棄は「復元不可能な方法」による。焼却・粉砕・細断・溶解・破壊等が規定されており、「保管庫への永久封印」は廃棄ではなく保管であり誤り。'},
+
+{id:21,cat:'himitsu',type:'正誤の組合せを選べ',
+ text:'特定秘密の廃棄記録について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：特定秘密管理者は、特定秘密文書等が廃棄されたときは、特定秘密管理者が定める帳簿に必要な事項を記録するものとする。
+B：廃棄の記録は任意であり、行わなくてもよい。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:1,
+ exp:'Aは正しい（第28条第6項）。Bは誤り。廃棄記録は義務である。'},
+
+{id:22,cat:'himitsu',type:'（　）に入る語句として、正しいものを選べ',
+ text:'特定秘密の廃棄について、指定の有効期間が通じて何年を超える場合は有効期間内に廃棄してはならないか、正しいものを選べ。',
+ choices:['10年','20年','30年','50年'],
+ answer:2,
+ exp:'第28条第3項の規定により30年を超える特定秘密は有効期間内に廃棄してはならない。'},
+
+{id:23,cat:'himitsu',type:'正誤の組合せを選べ',
+ text:'特定秘密の伝達の方法について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：伝達は必要な保護措置を講じた上で、口頭、電話、閲覧その他の方法で行うことができる。
+B：確認を行う際には、特定秘密の概要を用いるなど特定秘密が漏えいすることのないよう留意しなければならない。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A（第26条）・B（第25条第3項）共に正しい。'},
+
+// ====== 行政文書 ======
+{id:24,cat:'bunsho',type:'正誤の組合せを選べ',
+ text:'行政文書の定義（第2条）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：電磁的記録も行政文書に含まれる。
+B：職員が個人的に作成した文書で組織的に用いるものは行政文書に含まれない。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:1,
+ exp:'Aは正しい。電磁的記録も含む。Bは誤り。職員が職務上作成・取得した文書であって組織的に用いるものとして防衛省が保有しているものが行政文書であり、個人的作成かどうかは問わない。'},
+
+{id:25,cat:'bunsho',type:'（　）に入る語句として、正しいものを選べ',
+ text:'行政文書ファイル等の定義（第2条）について、（　）に入る語句として、正しいものを選べ。
+
+「行政文書ファイル等とは、行政文書ファイル及び（　）をいう。」',
+ choices:['保存期間を同じくする行政文書','単独で管理している行政文書','電子的に管理している行政文書','秘密指定された行政文書'],
+ answer:1,
+ exp:'行政文書ファイル等とは、行政文書ファイル及び「単独で管理している行政文書」をいう。'},
+
+{id:26,cat:'bunsho',type:'正誤の組合せを選べ',
+ text:'職員の整理義務（第15条）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：相互に密接な関連を有する行政文書を行政文書ファイルにまとめること。
+B：保存期間及び保存期間の満了する日を設定することは管理職のみの義務である。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:1,
+ exp:'Aは正しい（第15条(2)）。Bは誤り。第15条はすべての職員の整理義務を定めており、管理職のみではない。'},
+
+{id:27,cat:'bunsho',type:'誤りを選べ',
+ text:'利害関係者との飲食（自衛隊倫理規定第8条）において、届出が不要な場合として、誤りを選べ。',
+ choices:['多数の者が出席する立食パーティーにおいて利害関係者と共に飲食をするとき',
+          '私的な関係がある利害関係者と飲食する場合で自己又は私的関係者が費用を負担するとき',
+          '費用が一万円以下の場合はすべて届出不要である',
+          '私的関係がある者であって利害関係者に該当しない者が費用を負担するとき'],
+ answer:2,
+ exp:'「一万円以下はすべて届出不要」は誤り。届出の要否は金額だけでなく、誰と飲食するか・誰が費用を負担するかによって判断される。一万円超でも例外的に届出不要の場合がある。'},
+
+{id:28,cat:'bunsho',type:'正誤の組合せを選べ',
+ text:'秘密保全に関する訓令（文書及び図画の封筒等）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：秘に指定された文書又は図画を送達するときは、封筒又は包装を二重にして封かんしなければならない。
+B：前項の封筒又は包装には、不透明質のものを用いる。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に秘密保全に関する訓令第35条の規定のとおり正しい。'},
+
+// ====== 服装 ======
+{id:29,cat:'fuku',type:'正誤の組合せを選べ',
+ text:'建物の内部における脱帽（第15条）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：格納庫及び作業場等は脱帽義務の対象外である。
+B：基地司令等が特に必要と認める場所においても脱帽することができる。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に第15条の規定のとおり正しい。'},
+
+{id:30,cat:'fuku',type:'（　）に入る語句として、正しいものを選べ',
+ text:'制服等の着用時期（第23条）について、（　）に入る数字として、正しいものを選べ。
+
+「基地司令等は、夏期及び冬期の前後（　）月の範囲において着用期間について別段の定めをすることができる。」',
+ choices:['1月','2月','3月','6月'],
+ answer:1,
+ exp:'第23条第1項の規定により前後2月の範囲で別段の定めができる。'},
+
+{id:31,cat:'fuku',type:'正誤の組合せを選べ',
+ text:'運動靴等の使用（第17条）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：勤務時間外に基地等内において体育服装以外でも運動靴を使用できる。
+B：傷病等特異な場合は、基地司令等の定めにより運動靴・上靴・営内用靴を使用できる。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A（第17条第1項）・B（第17条第4項）共に正しい。'},
+
+{id:32,cat:'fuku',type:'誤りを選べ',
+ text:'制服等の着用に関して、野外訓練及び出張の場合の取り扱いとして、誤りを選べ。',
+ choices:['出張先の着用時期が自己の勤務地と異なる場合、夏服着用時期に冬服を着用することができる。',
+          '野外訓練の期間が夏用と冬用の着用期間にまたがる場合、夏用着用時期に冬用を着用することができる。',
+          'いかなる場合も自己の勤務地の着用時期に従わなければならない。',
+          '出張先と勤務地の着用時期が異なる場合、それぞれの着用時期に合わせた服装をすることができる。'],
+ answer:2,
+ exp:'「いかなる場合も自己の勤務地の着用時期に従わなければならない」は誤り。第23条第4項に例外規定がある。'},
+
+// ====== 休暇制度 ======
+{id:33,cat:'kyoka',type:'正誤の組合せを選べ',
+ text:'保育時間確保のための特別休暇について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：対象は生後1年未満の子を育てる職員である。
+B：取得可能期間は子が生まれた日から満1歳の誕生日の前日まで。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に正しい。1日2回（午前・午後各1回）それぞれ30分以内の休暇が請求できる。'},
+
+{id:34,cat:'kyoka',type:'（　）に入る語句として、正しいものを選べ',
+ text:'産前の特別休暇について、（　）に入る数字として、正しいものを選べ。
+
+「（　）週間（多胎妊娠の場合は14週間）以内に出産予定の女性職員が申し出た場合に、出産日までの期間に取得することが可能。」',
+ choices:['4週間','6週間','8週間','12週間'],
+ answer:1,
+ exp:'産前の特別休暇は6週間（多胎の場合は14週間）以内に出産予定の女性職員が対象。産後は出産日の翌日から8週間。'},
+
+{id:35,cat:'kyoka',type:'正誤の組合せを選べ',
+ text:'産前産後の特別休暇について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：産後の特別休暇は出産日の翌日から8週間を経過するまでの期間に取得できる。
+B：産後6週間を経過し医師が支障がないと認めた場合、勤務は可能である。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に正しい。産後8週間は母性保護の観点から就業が制限されるが、6週間経過後に医師が認めた場合は勤務可能。'},
+
+{id:36,cat:'kyoka',type:'正しいものを選べ',
+ text:'ChildCare7（男の産休）に関する記述として、正しいものを選べ。',
+ choices:['ChildCare7とは、妻の産前産後期間中に男性職員のみが取得できる特別休暇（有給）で全7日間である。',
+          'ChildCare7は無給の特別休暇である。',
+          'ChildCare7は女性職員も取得できる。',
+          'ChildCare7の取得可能日数は5日である。'],
+ answer:0,
+ exp:'ChildCare7は配偶者出産特別休暇（2日）と育児参加のための特別休暇（5日）を合わせた合計7日間の有給特別休暇。男性職員のみが対象。'},
+
+{id:37,cat:'kyoka',type:'正誤の組合せを選べ',
+ text:'不妊治療に係る通院等のための特別休暇について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：対象者は全職員（一定要件を満たす非常勤職員を含む）である。
+B：体外受精や顕微授精に係る通院等の場合は10日の範囲内となる。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に正しい。通常は1年で5日の範囲内だが、体外受精・顕微授精の場合は10日の範囲内となる。'},
+
+{id:38,cat:'kyoka',type:'（　）に入る語句として、正しいものを選べ',
+ text:'妊産婦の保健指導及び健康診査のための特別休暇について、妊娠24週から満35週までの取得回数として、正しいものを選べ。',
+ choices:['4週間に1回必要と認められる時間','2週間に1回必要と認められる時間','1週間に1回必要と認められる時間','当該期間内に1回必要と認められる時間'],
+ answer:1,
+ exp:'妊娠24週から35週までは2週間に1回。23週まで：4週間に1回、36週から出産まで：1週間に1回、出産後1年以内：当該期間内に1回。'},
+
+// ====== 安全管理・安全色彩 ======
+{id:39,cat:'anzen',type:'正しいものを選べ',
+ text:'安全色彩（航空自衛隊安全管理規則別紙第1第12条関係）において、「黄赤」の表示事項として、正しいものを選べ。',
+ choices:['防火、禁止、停止、高度な危険を表示するための基本色',
+          '危険を表示するための基本色',
+          '注意を表示するための基本色',
+          '安全、避難、衛生及び進行を表示するための基本色'],
+ answer:1,
+ exp:'黄赤は危険を表示するための基本色。赤：防火・禁止・停止・高度な危険、黄赤：危険、黄：注意、緑：安全・避難・衛生・進行。'},
+
+{id:40,cat:'anzen',type:'正誤の組合せを選べ',
+ text:'安全色彩について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：赤は防火、禁止、停止、高度な危険を表示するための基本色とする。
+B：青は指示及び用心を示すための基本色とする。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に正しい。安全色彩の規定のとおり。'},
+
+{id:41,cat:'anzen',type:'誤りを選べ',
+ text:'安全色彩において、「赤紫」の用途として、誤りを選べ。',
+ choices:['黄と組み合わせて放射性物質を示す場所に用いる',
+          '危険を表示するための基本色として用いる',
+          '放射性物質がある場所の表示に使用する',
+          '黄と組み合わせて使用する'],
+ answer:1,
+ exp:'赤紫は黄と組み合わせて放射性物質を示す場所に用いる専用色であり、「危険を表示するための基本色」は黄赤の説明。'},
+
+{id:42,cat:'anzen',type:'正しいものを選べ',
+ text:'安全標識の種類において、「注意標識」の説明として、正しいものを選べ。',
+ choices:['直接に危険なもの及び場所又は状態に対する警告として用いる',
+          'そのままでは特に危険はないが、不安全な行為又は不注意によって危険が起こるおそれがあることに注意を促すために用いる',
+          '危険な行動を禁止するために用いる',
+          '救命及び救護に関係があるもの又はこれらの箇所を示すのに用いる'],
+ answer:1,
+ exp:'注意標識は「そのままでは特に危険はないが、不安全な行為や不注意によって危険が起こるおそれがあることに注意を促す」ために用いる。'},
+
+{id:43,cat:'anzen',type:'正誤の組合せを選べ',
+ text:'安全標識について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：防火標識は火災の発生のおそれがある場所や引火・発火のおそれがあるものの所在位置・防火消火設備を示すのに用いる。
+B：誘導標識は特定の物品・設備の所在場所の方向及び避難の方向を明示するために用いる。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に安全管理規則の規定のとおり正しい。'},
+
+{id:44,cat:'anzen',type:'誤りを選べ',
+ text:'隊員の報告義務（航空自衛隊安全管理規則第3章第3節第14条）として、誤りを選べ。',
+ choices:['隊員は、積極的に事故の防止に努め、危険状態等を発見し、又は予知した場合は必要に応じ応急処置を執る',
+          '隊員は危険を発見した場合、直ちに所属部隊等の長に報告するものとする',
+          '危険状態を発見しても、自己の判断で処理できると思われる場合は報告を省略することができる',
+          '被害の局限を図るとともに直ちに報告する義務がある'],
+ answer:2,
+ exp:'「自己判断で処理できる場合は報告を省略できる」という規定はない。第14条は危険状態等を発見した場合は直ちに報告することを義務付けている。'},
+
+// ====== 教育訓練 ======
+{id:45,cat:'kyoiku',type:'正しいものを選べ',
+ text:'教育訓練の区分（航空自衛隊の教育訓練に関する訓令第1章第4条）として、正しいものを選べ。',
+ choices:['教育訓練は、基本教育及び練成訓練に区分する。',
+          '教育訓練は、基本教育、練成訓練及び特別訓練に区分する。',
+          '教育訓練は、一般教育及び技術教育に区分する。',
+          '教育訓練は、飛行教育及び術科教育に区分する。'],
+ answer:0,
+ exp:'第4条の規定のとおり、教育訓練は基本教育及び練成訓練に区分する。'},
+
+{id:46,cat:'kyoiku',type:'正誤の組合せを選べ',
+ text:'教育訓練の区分について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：基本教育は、一般教育及び技術教育に区分する。
+B：技術教育は、飛行教育及び術科教育に区分する。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A（第10条）・B（第41条）共に正しい。'},
+
+{id:47,cat:'kyoiku',type:'正しいものを選べ',
+ text:'個人訓練の区分（航空自衛隊の練成訓練に関する達第2章第4条）として、正しいものを選べ。',
+ choices:['個人訓練は、防衛基礎訓練、体育訓練及び特技訓練に区分する。',
+          '個人訓練は、防衛基礎訓練及び体育訓練の2種類に区分する。',
+          '個人訓練は、一般訓練及び専門訓練に区分する。',
+          '個人訓練は、飛行訓練及び地上訓練に区分する。'],
+ answer:0,
+ exp:'第4条の規定のとおり、個人訓練は防衛基礎訓練・体育訓練・特技訓練の3種類に区分する。'},
+
+{id:48,cat:'kyoiku',type:'正誤の組合せを選べ',
+ text:'部隊訓練の区分（練成訓練に関する達第2章第9条）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：部隊訓練は、総合訓練、機能別訓練、協同（共同）訓練及び部隊別訓練に区分する。
+B：機能別訓練は、防衛大臣直轄部隊等、航空方面隊における特定の機能について部隊等が連携して行う訓練とする。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に第9条の規定のとおり正しい。'},
+
+{id:49,cat:'kyoiku',type:'（　）に入る語句として、正しいものを選べ',
+ text:'部隊訓練の区分において、「協同（共同）訓練」の定義として、（　）に入る語句として、正しいものを選べ。
+
+「協同（共同）訓練は、陸上自衛隊、海上自衛隊及び（　）と相互に協同（共同）して行う訓練とする。」',
+ choices:['防衛大臣直轄部隊','アメリカ合衆国軍隊等','同盟国軍隊','NATO加盟国軍隊'],
+ answer:1,
+ exp:'協同（共同）訓練は陸上自衛隊、海上自衛隊及びアメリカ合衆国軍隊等と相互に協同して行う訓練。'},
+
+// ====== 基地服務・消防 ======
+{id:50,cat:'kichi',type:'正しいものを選べ',
+ text:'消防（航空自衛隊基地服務規則第8章第1節第48条）において、火災呼集を発令できる者として、正しいものを選べ。',
+ choices:['基地司令等のみ',
+          '基地司令等が発令する。ただし、幹部自衛官、警衛隊長及び当直勤務に服する空曹は、状況急を要する場合には、火災呼集の号音を奏することができる。',
+          '当直勤務者のみ',
+          '消防担当部隊長のみ'],
+ answer:1,
+ exp:'第48条の規定のとおり。基地司令等が発令するが、幹部自衛官・警衛隊長・当直勤務に服する空曹は状況急を要する場合に号音を奏することができる。'},
+
+{id:51,cat:'kichi',type:'正誤の組合せを選べ',
+ text:'任務（航空自衛隊基地服務規則第7章第1節第22条）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：当直勤務者は、通常の勤務時間外において、部隊等の長又は基地司令等の不在間、これらに代わり主として警備、消防及び服務規律の維持並びに災害及び盗難の予防等の業務を行う。
+B：当直勤務者は、通常の勤務時間内においては本務に従事するものとする。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に第22条の規定のとおり正しい。'},
+
+{id:52,cat:'kichi',type:'誤りを選べ',
+ text:'電気器具の使用（航空自衛隊基地服務規則第50条）として、誤りを選べ。',
+ choices:['隊員は、電気器具を使用する場合には、基地司令等の定めるところにより使用の許可を受けるものとする。',
+          '電気器具の使用許可は防衛大臣が直接行う。',
+          '電気器具の使用には基地司令等の許可が必要である。',
+          '使用の許可は基地司令等の定めによる。'],
+ answer:1,
+ exp:'電気器具の使用許可は「基地司令等の定めるところ」により行われる。防衛大臣が直接行うという規定はない。'},
+
+// ====== 経歴管理 ======
+{id:53,cat:'keiki',type:'正しいものを選べ',
+ text:'経歴管理の定義（准空尉、空曹及び空士自衛官の経歴管理について第1章第2条）として、正しいものを選べ。',
+ choices:['経歴管理とは、隊員の昇任、異任、補職、入校等を計画的かつ継続的に管理することをいう。',
+          '経歴管理とは、隊員の給与管理のみをいう。',
+          '経歴管理は防衛大臣のみが行う。',
+          '経歴管理とは入校管理のみをいう。'],
+ answer:0,
+ exp:'第2条(1)の規定のとおり。経歴管理は昇任・異任・補職・入校等を計画的かつ継続的に管理すること。'},
+
+{id:54,cat:'keiki',type:'正誤の組合せを選べ',
+ text:'経歴管理の定義について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：配置指定とは、異任又は補職された隊員を職務命令により現実に勤務すべき特定の職に指定し、又は特定の組織に配置することをいう。
+B：異動とは、異任、補職又は配置指定により基地等を異にして勤務させることをいう。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A（第2条(4)）・B（第2条(3)）共に正しい。'},
+
+{id:55,cat:'keiki',type:'正しいものを選べ',
+ text:'3候幹部の定義（経歴管理第2条）として、正しいものを選べ。',
+ choices:['自衛隊法施行規則第28条第2項の規定に基づき、人事評価等の結果に基づく選考により3等空尉に定期昇任した者をいう。',
+          '部内幹部候補生課程を履修して幹部となる者をいう。',
+          '防衛大学校を卒業して幹部となる者をいう。',
+          '3等空曹への昇任試験を経て幹部となる者をいう。'],
+ answer:0,
+ exp:'第2条(11)の規定のとおり。選考3尉は人事評価等の結果に基づく選考により3等空尉に定期昇任した者。部内幹部候補生は「部内幹部（第2条(9)）」、3候幹部は「3等空曹への昇任試験を経て幹部となる者（第2条(10)）」。'},
+
+{id:56,cat:'keiki',type:'誤りを選べ',
+ text:'経歴管理の一般要領（第7条）において、中級段階（3等空曹の期間）の内容として、誤りを選べ。',
+ choices:['主特技能力を概成させ、専門業務の能力向上を図る',
+          '内務班長等を経験させることにより空曹としての資質の向上を図る',
+          '空士に対する指導能力を修得させる',
+          '主特技能力を熟達させ、職域のスペシャリストとして関連職域等に関する総合的な特技能力を修得させる'],
+ answer:3,
+ exp:'選択肢4は1等空曹（上級段階）の内容。3等空曹（中級段階）は主特技能力の概成・専門業務能力向上・内務班長経験・空士への指導能力修得が内容。'},
+
+// ====== 情報保証 ======
+{id:57,cat:'joho',type:'正しいものを選べ',
+ text:'情報保証の定義（防衛省の情報保証に関する訓令第1章第2条）として、正しいものを選べ。',
+ choices:['情報システム及び電子計算機情報の機密性、完全性、可用性、識別認証及び否認防止を維持することをいう。',
+          '情報システムの機密性のみを維持することをいう。',
+          '電子計算機の物理的な保護のみをいう。',
+          '情報の暗号化のみをいう。'],
+ answer:0,
+ exp:'情報保証の定義として機密性・完全性・可用性・識別認証・否認防止の5要素を維持することが正しい。'},
+
+{id:58,cat:'joho',type:'正誤の組合せを選べ',
+ text:'情報保証の定義について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：可用性とは、情報システムにアクセスすることを許可された者が、必要なときに当該情報にアクセスできることを確実にすることをいう。
+B：否認防止とは、情報システムを利用した送受信を行った者が当該送受信を行ったことを否定できないことを確実にすることをいう。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に第2条(1)の規定のとおり正しい。'},
+
+{id:59,cat:'joho',type:'誤りを選べ',
+ text:'情報保証の定義において、「目的特化型機器」の説明として、誤りを選べ。',
+ choices:['情報システムの構成品に該当せず、主たる使用目的が撮影、録音、複写等であるもの',
+          '機器単体でデータを保存できるもの',
+          '機器単体でインターネット等の外部ネットワークに接続し保存しているデータを共有できるもの',
+          '可搬記憶媒体である'],
+ answer:3,
+ exp:'目的特化型機器は「可搬型のものをいう」とされている可搬記憶媒体とは別物。目的特化型機器の定義に「可搬記憶媒体でないもの」と明記されている。'},
+
+{id:60,cat:'joho',type:'正しいものを選べ',
+ text:'脆弱性対応（防衛省の情報保証に関する訓令第3章第3節第33条）として、正しいものを選べ。',
+ choices:['情報システム情報保証責任者は、情報システムの脆弱性に対応するために導入した機能等を適切に運用するとともに、必要に応じて当該機能等を更新することにより、情報システムの脆弱性への対応を適切に行わなければならない。',
+          '脆弱性対応は職員個人の判断で行えばよい。',
+          '情報システムの脆弱性対応は年1回のみ実施すればよい。',
+          '脆弱性への対応は情報保証責任者のみが行う。'],
+ answer:0,
+ exp:'第33条第1項の規定のとおり。情報システム情報保証責任者が責任を持ち、機能の運用・更新により適切に対応する。また第2項により職員もウイルス対策等の措置を行わなければならない。'},
+
+// ====== 体育・行進・銃操作 ======
+{id:61,cat:'taiiku',type:'正しいものを選べ',
+ text:'体育訓練の目的として、正しいものを選べ。',
+ choices:['体育訓練は、航空自衛官として任務を達成するために必要な体力を総合的に練成するとともに、旺盛な気力を充実し、強固なチームワークを育成することを目的とする。',
+          '体育訓練の目的は体力の維持のみである。',
+          '体育訓練は隊員の趣味・余暇活動の充実が目的である。',
+          '体育訓練は競技力の向上のみを目的とする。'],
+ answer:0,
+ exp:'体育訓練の目的は「任務達成に必要な体力の練成」「旺盛な気力の充実」「強固なチームワークの育成」の3点。'},
+
+{id:62,cat:'taiiku',type:'正誤の組合せを選べ',
+ text:'ストレッチ体操実施上の注意事項について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：筋や腱がほどよい緊張が感じられるところで動作を止め、そのままの姿勢で10～15秒保持し続けるようにする。
+B：呼吸を止めてストレッチを行うと筋が緊張しストレッチの効果が減少する。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に正しい。Aは反動をつけずに行うことの説明、Bは呼吸を止めないで行うことの理由。'},
+
+{id:63,cat:'taiiku',type:'（　）に入る語句として、正しいものを選べ',
+ text:'スタティック・ストレッチの実施方法について、（　）に入る数字として、正しいものを選べ。
+
+「始めに10～15秒間姿勢を保持したら筋や腱を休めるため一度姿勢を解き、次に、また（　）秒間姿勢を保持するように、段階的に時間と強度を増して行く。」',
+ choices:['15～20秒','20～30秒','30～45秒','45～60秒'],
+ answer:1,
+ exp:'段階的に強度を増す際は20～30秒間の保持に移行する。'},
+
+{id:64,cat:'taiiku',type:'誤りを選べ',
+ text:'ストレッチ体操の効果として、誤りを選べ。',
+ choices:['筋肉や腱の柔軟性を向上させ、筋肉に弾性を与えて動きやすい身体の状態をつくる',
+          '身体を柔軟にしスポーツ傷害の予防に効果がある',
+          '激しい運動後の筋肉疲労や筋肉痛の回復を促進させる効果がある',
+          '心肺機能を大幅に向上させ持久力が飛躍的に高まる'],
+ answer:3,
+ exp:'ストレッチの効果として心肺機能の大幅向上・持久力飛躍的向上は規定されていない。ストレッチは柔軟性向上・傷害予防・筋肉疲労回復・精神緊張緩和・末消血液循環改善等が効果として挙げられている。'},
+
+{id:65,cat:'taiiku',type:'正誤の組合せを選べ',
+ text:'銃の故障排除第1段階（応急処置）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：第1段階の動作は「引く」「たたく」「放す」「ねらう」「射（う）つ」の5つである。
+B：通常、この操作により故障の大部分は排除することができる。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に故障及び故障排除の規定のとおり正しい。'},
+
+{id:66,cat:'taiiku',type:'（　）に入る語句として、正しいものを選べ',
+ text:'銃の故障排除第2段階について、（　）に入る語句として、正しいものを選べ。
+
+「第1段階によってもなお故障が排除できない時は、安全装置をかけた後、（　）の五つの動作を行う。」',
+ choices:['「外す」「見る」「引く」「探す」「排除」',
+          '「引く」「たたく」「放す」「ねらう」「射つ」',
+          '「止める」「外す」「見る」「引く」「排除」',
+          '「外す」「分解」「清掃」「組立」「確認」'],
+ answer:0,
+ exp:'第2段階は「外す」「見る」「引く」「探す」「排除」の5動作。第1段階は「引く」「たたく」「放す」「ねらう」「射つ」。'},
+
+{id:67,cat:'taiiku',type:'正しいものを選べ',
+ text:'速足行進の歩幅と速度として、正しいものを選べ。',
+ choices:['歩幅75センチメートル、1分間に120歩',
+          '歩幅60センチメートル、1分間に100歩',
+          '歩幅75センチメートル、1分間に100歩',
+          '歩幅80センチメートル、1分間に120歩'],
+ answer:0,
+ exp:'速足行進の歩幅は75センチメートル、速度は1分間に120歩を基準とする。'},
+
+{id:68,cat:'taiiku',type:'正誤の組合せを選べ',
+ text:'銃操作の共通規制事項について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：銃を地上に下ろすときは、静かに下ろす。
+B：銃の負いひもは、必要がないときには通常、緊張させておく。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に正しい。銃を下ろす際は静かに、負いひもは緊張させておく。'},
+
+{id:69,cat:'taiiku',type:'誤りを選べ',
+ text:'部隊教練の共通規制事項として、誤りを選べ。',
+ choices:['隊員は、通常、先頭又は右から身長の高い順に集合する。',
+          '各隊は、通常、先頭又は右から建制順に集合する。',
+          '基準隊員（列、隊）とは、通常、最前列最右翼の隊員（列、隊）をいう。',
+          '停止した部隊は通常、最後列最左翼の隊員に整頓する。'],
+ answer:3,
+ exp:'停止した部隊は「基準隊員（列、隊）に整頓する」のが正しい。「最後列最左翼」は誤り。'},
+
+{id:70,cat:'taiiku',type:'正しいものを選べ',
+ text:'行進時の距離及び間隔の維持について、正しいものを選べ。',
+ choices:['基準隊員は、示された目標に向かい、又は真っ直ぐに行進する。',
+          '基準隊員は前の者との距離を常に2歩に保つ。',
+          '整頓線から遅れた場合は、速足行進に切り替えてはならない。',
+          '行進時の間隔は発進時の間隔より広くとる。'],
+ answer:0,
+ exp:'第64条(6)アの規定のとおり。基準隊員は示された目標に向かい、又は真っ直ぐに行進する。'},
+
+// ====== 防衛略語 ======
+{id:71,cat:'ryakugo',type:'正しいものを選べ',
+ text:'国家防衛戦略の防衛関連略語として、「FOIP」の意味として、正しいものを選べ。',
+ choices:['自由で開かれたインド太平洋','インド太平洋防衛構想','アジア太平洋防衛協力','太平洋安全保障協力'],
+ answer:0,
+ exp:'FOIPはFree and Open Indo-Pacificの略で「自由で開かれたインド太平洋」。国家防衛戦略及び国家安全保障戦略に記載されている防衛関連略語。'},
+
+{id:72,cat:'ryakugo',type:'正しいものを選べ',
+ text:'防衛関連略語として、「ACSA」の意味として、正しいものを選べ。',
+ choices:['物品役務相互提供協定','同盟調整メカニズム','円滑化協定','外務・防衛閣僚級協議'],
+ answer:0,
+ exp:'ACSAはAcquisition and Cross-Servicing Agreementの略で「物品役務相互提供協定」。ACSAは日本と同盟・友好国との間で締結される協定。'},
+
+{id:73,cat:'ryakugo',type:'誤りを選べ',
+ text:'防衛関連略語の組合せとして、誤りを選べ。',
+ choices:['ACM：同盟調整メカニズム','RAA：円滑化協定','2＋2：外務・防衛閣僚級協議','ISR：情報収集・警戒監視・偵察・ターゲティング'],
+ answer:3,
+ exp:'ISRはIntelligence, Surveillance and Reconnaissanceで「情報収集・警戒監視・偵察」。「ターゲティング」が付くのはISRT（情報収集・警戒監視・偵察・ターゲティング）であり、ISRとISRTは別略語。'},
+
+{id:74,cat:'ryakugo',type:'正誤の組合せを選べ',
+ text:'防衛関連略語について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：PKOは国連平和維持活動の略語である。
+B：J-ALERTは全国瞬時警報システムの略語である。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に正しい。PKO：Peace Keeping Operations（国連平和維持活動）、J-ALERT：全国瞬時警報システム。'},
+
+{id:75,cat:'ryakugo',type:'正しいものを選べ',
+ text:'防衛関連略語として、「HGV」の意味として、正しいものを選べ。',
+ choices:['極超音速滑空兵器','高高度滑空兵器','超音速誘導弾','高速滑空ロケット'],
+ answer:0,
+ exp:'HGVはHypersonic Glide Vehicleの略で「極超音速滑空兵器」。国家防衛戦略に記載されている防衛関連略語。'},
+
+// ====== セクハラ・コンプライアンス ======
+{id:76,cat:'comp',type:'正誤の組合せを選べ',
+ text:'セクシュアル・ハラスメントの防止等に関する訓令（第4条）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：監督者は良好な勤務環境を確保するため、日常の執務を通じた指導等によりセクシュアル・ハラスメントの防止及び排除に努める義務がある。
+B：セクシュアル・ハラスメントに起因する問題が生じた場合には、迅速かつ適切に対処しなければならない。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に第4条第2項の規定のとおり正しい。'},
+
+{id:77,cat:'comp',type:'誤りを選べ',
+ text:'傾聴法のポイントとして、誤りを選べ。',
+ choices:['話を否定しない','叱咤激励しない','興味本位で質問しない','相手の話が終わる前に解決策を提示する'],
+ answer:3,
+ exp:'傾聴法では相手の話を最後まで聞くことが重要であり、「話が終わる前に解決策を提示する」は傾聴の妨げになる。自己判断で結論を決めつけたりしないことが重要。'},
+
+{id:78,cat:'comp',type:'正誤の組合せを選べ',
+ text:'営舎外居住の許可（自衛官の居住場所に関する訓令第2条・第3条）について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：曹長以下2等空曹以上の自衛官は、順序を経て部隊等の長に申請することができる。
+B：3等空曹は空幕長の基準を満たす者に限り申請できる。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に訓令第2条の規定のとおり正しい。なお3曹以下は曹長以上と異なり空幕長の基準を満たすことが条件となる。'},
+
+{id:79,cat:'comp',type:'正しいものを選べ',
+ text:'地上事故の種別（地上事故の調査及び報告に関する達第1章第4条）において、「体育事故」の定義として、正しいものを選べ。',
+ choices:['航空自衛隊の練成訓練に関する達（平成4年航空自衛隊達第11号）第4条第3項の規定に基づく体育訓練（以下「体育訓練」という。）実施中における事故',
+          'すべての体育活動中の事故',
+          '勤務時間外の自主的な運動中の事故も含む',
+          '体育訓練以外のスポーツ活動も含む'],
+ answer:0,
+ exp:'体育事故は「練成訓練に関する達の規定に基づく体育訓練実施中」の事故に限られる。自主的な運動や体育訓練以外のスポーツ活動は含まれない。'},
+
+{id:80,cat:'comp',type:'正誤の組合せを選べ',
+ text:'地上事故の種別について、次のA・Bの正誤の組合せとして、正しいものを選べ。
+
+A：交通事故には、航空自衛隊が所有若しくは使用する車両による事故のほか、歩行中の事故も含まれる。
+B：爆発事故には、武器等事故に属するものを除く。',
+ choices:['A：正　B：正','A：正　B：誤','A：誤　B：正','A：誤　B：誤'],
+ answer:0,
+ exp:'A・B共に第4条の規定のとおり正しい。交通事故は歩行中の事故も含み、爆発事故は武器等事故に属するものを除く。'},
+];
+
+// ===========================
+// APP STATE
+// ===========================
+let mode = 'all';
+let selectedCats = new Set(CATS.map(c=>c.id));
+let currentIdx = 0;
+let questions = [];
+let answers = []; // {qid, chosen, correct}
+let weakSet = new Set(JSON.parse(localStorage.getItem('weakQ')||'[]'));
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('mode'+m.charAt(0).toUpperCase()+m.slice(1)).classList.add('selected');
+  updateHeader();
+}
+
+function toggleCat(id) {
+  if(selectedCats.has(id)) {
+    if(selectedCats.size>1) selectedCats.delete(id);
+  } else {
+    selectedCats.add(id);
+  }
+  renderCats();
+}
+
+function renderCats() {
+  const grid = document.getElementById('catGrid');
+  grid.innerHTML = '';
+  CATS.forEach(c=>{
+    const count = ALL_Q.filter(q=>q.cat===c.id).length;
+    const btn = document.createElement('div');
+    btn.className = 'cat-btn' + (selectedCats.has(c.id)?' selected':'');
+    btn.innerHTML = `<div class="cat-icon">${c.icon}</div><div class="cat-name">${c.name}</div><div class="cat-count">${count}問</div>`;
+    btn.onclick = ()=>toggleCat(c.id);
+    grid.appendChild(btn);
+  });
+}
+
+function updateHeader() {
+  let pool = getPool();
+  document.getElementById('headerBadge').textContent = pool.length+'問';
+}
+
+function getPool() {
+  let pool = ALL_Q.filter(q=>selectedCats.has(q.cat));
+  if(mode==='weak') {
+    let w = pool.filter(q=>weakSet.has(q.id));
+    if(w.length>0) pool=w;
+  }
+  return pool;
+}
+
+function shuffle(arr) {
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function startQuiz() {
+  let pool = getPool();
+  if(mode==='random') {
+    pool = shuffle([...pool]).slice(0,Math.min(30,pool.length));
+  } else {
+    pool = shuffle([...pool]);
+  }
+  questions = pool;
+  answers = [];
+  currentIdx = 0;
+  showScreen('screenQ');
+  document.getElementById('progressWrap').style.display='block';
+  document.getElementById('statsArea').style.display='flex';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[currentIdx];
+  const total = questions.length;
+
+  // Progress
+  document.getElementById('progressBar').style.width = (currentIdx/total*100)+'%';
+  document.getElementById('statQ').textContent = currentIdx+'/'+total;
+  document.getElementById('statC').textContent = answers.filter(a=>a.chosen===a.correct).length;
+  document.getElementById('statW').textContent = answers.filter(a=>a.chosen!==a.correct&&a.chosen!==-1).length;
+
+  // Q meta
+  document.getElementById('qNum').textContent = '第'+(currentIdx+1)+'問';
+  document.getElementById('qCatTag').textContent = CATS.find(c=>c.id===q.cat)?.name||'';
+  document.getElementById('qType').textContent = '【'+q.type+'】';
+
+  // Text
+  const parts = q.text.split('\n');
+  document.getElementById('qText').textContent = parts[0];
+  const sub = document.getElementById('qSub');
+  if(parts.length>1) {
+    sub.textContent = parts.slice(1).join('\n');
+    sub.style.display='block';
+  } else {
+    sub.style.display='none';
+  }
+
+  // Choices — shuffle order but keep correct
+  const origChoices = q.choices.map((c,i)=>({text:c,origIdx:i}));
+  const shuffled = shuffle([...origChoices]);
+  const newCorrect = shuffled.findIndex(c=>c.origIdx===q.answer);
+
+  document.getElementById('choicesArea').innerHTML='';
+  shuffled.forEach((c,i)=>{
+    const div=document.createElement('div');
+    div.className='choice';
+    div.innerHTML=`<div class="choice-num">${i+1}</div><div class="choice-text">${c.text}</div>`;
+    div.onclick=()=>selectChoice(div, i, newCorrect, q);
+    document.getElementById('choicesArea').appendChild(div);
+  });
+
+  // Store shuffled answer index for this question
+  q._shuffledAnswer = newCorrect;
+
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('expText').textContent = q.exp||'';
+  document.getElementById('btnNext').disabled=true;
+}
+
+function selectChoice(div, idx, correct, q) {
+  if(document.getElementById('btnNext').disabled===false) return;
+  const choices = document.querySelectorAll('.choice');
+  choices.forEach(c=>c.style.pointerEvents='none');
+
+  div.classList.add(idx===correct?'correct':'wrong');
+  if(idx!==correct) {
+    choices[correct].classList.add('correct');
+  }
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('btnNext').disabled=false;
+
+  // Update choice-num for visual
+  choices.forEach((c,i)=>{
+    if(i===correct) c.querySelector('.choice-num').textContent='✓';
+    else if(i===idx && idx!==correct) c.querySelector('.choice-num').textContent='✗';
+  });
+
+  answers.push({qid:q.id, chosen:idx, correct:correct});
+  if(idx!==correct) weakSet.add(q.id);
+  else weakSet.delete(q.id);
+  localStorage.setItem('weakQ', JSON.stringify([...weakSet]));
+
+  document.getElementById('statC').textContent = answers.filter(a=>a.chosen===a.correct).length;
+  document.getElementById('statW').textContent = answers.filter(a=>a.chosen!==a.correct&&a.chosen!==-1).length;
+}
+
+function nextQ() {
+  currentIdx++;
+  if(currentIdx>=questions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function skipQ() {
+  answers.push({qid:questions[currentIdx].id, chosen:-1, correct:questions[currentIdx]._shuffledAnswer||0});
+  currentIdx++;
+  if(currentIdx>=questions.length) showResult();
+  else renderQuestion();
+}
+
+function showResult() {
+  showScreen('screenResult');
+  document.getElementById('progressWrap').style.display='none';
+  document.getElementById('statsArea').style.display='none';
+
+  const correct = answers.filter(a=>a.chosen===a.correct).length;
+  const total = questions.length;
+  const pct = Math.round(correct/total*100);
+
+  document.getElementById('resScore').textContent = correct;
+  document.getElementById('resTotal').textContent = '/ '+total+'問';
+
+  let msg, sub;
+  if(pct>=90){msg='優秀！🏆';sub='素晴らしい成績です。引き続き維持しましょう。'}
+  else if(pct>=70){msg='合格圏内！👍';sub='あと一歩で高得点。苦手分野を復習しましょう。'}
+  else if(pct>=50){msg='もう少し！📚';sub='基礎をしっかり固めましょう。'}
+  else{msg='要復習⚡';sub='もう一度試験範囲を確認しましょう。'}
+  document.getElementById('resMsg').textContent = msg+' '+pct+'%';
+  document.getElementById('resSub').textContent = sub;
+
+  // By category
+  const cats = document.getElementById('resCats');
+  cats.innerHTML = '<div style="font-size:12px;color:var(--gray);font-weight:600;margin-bottom:10px;letter-spacing:1px;">カテゴリ別成績</div>';
+  CATS.forEach(c=>{
+    const qs = questions.filter(q=>q.cat===c.id);
+    if(!qs.length) return;
+    const cAns = answers.filter(a=>qs.some(q=>q.id===a.qid)&&a.chosen===a.correct).length;
+    const p = Math.round(cAns/qs.length*100);
+    const row=document.createElement('div'); row.className='result-cat-row';
+    row.innerHTML=`<div class="result-cat-name">${c.icon} ${c.name}</div>
+      <div class="result-cat-bar-wrap"><div class="result-cat-bar" style="width:${p}%"></div></div>
+      <div class="result-cat-pct">${cAns}/${qs.length}</div>`;
+    cats.appendChild(row);
+  });
+
+  // Review wrong
+  const rev = document.getElementById('reviewArea');
+  rev.innerHTML='';
+  const wrong = answers.filter(a=>a.chosen!==a.correct);
+  wrong.forEach(a=>{
+    const q = questions.find(qq=>qq.id===a.qid);
+    if(!q) return;
+    const origChoices = q.choices.map((c,i)=>({text:c,origIdx:i}));
+    const item=document.createElement('div');
+    item.className='review-item ng';
+    item.innerHTML=`<div class="review-qnum">${CATS.find(c=>c.id===q.cat)?.name||''}</div>
+      <div class="review-qtext">${q.text.split('\n')[0]}</div>
+      <div class="review-ans"><span class="correct-ans">正解：${q.choices[q.answer]}</span></div>`;
+    rev.appendChild(item);
+  });
+  if(!wrong.length) rev.innerHTML='<div style="text-align:center;color:var(--correct);padding:20px;font-size:14px;">全問正解！🎉</div>';
+}
+
+function restartSame() {
+  currentIdx=0; answers=[];
+  questions = shuffle([...questions]);
+  showScreen('screenQ');
+  document.getElementById('progressWrap').style.display='block';
+  document.getElementById('statsArea').style.display='flex';
+  renderQuestion();
+}
+
+function confirmQuit() {
+  const overlay = document.getElementById('quitOverlay');
+  overlay.style.display = 'flex';
+}
+
+function cancelQuit() {
+  const overlay = document.getElementById('quitOverlay');
+  overlay.style.display = 'none';
+}
+
+function doQuit() {
+  document.getElementById('quitOverlay').style.display = 'none';
+  showResult();
+}
+
+function goHome() {
+  showScreen('screenHome');
+  document.getElementById('progressWrap').style.display='none';
+  document.getElementById('statsArea').style.display='none';
+  updateHeader();
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// Init
+renderCats();
+updateHeader();
+</script>
+</body>
+</html>
